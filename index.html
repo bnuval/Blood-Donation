@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>समाज सशक्तिकरण</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+
+  <!-- Hindi Header -->
+  <div class="bg-gradient-to-r from-red-600 to-yellow-500 text-white p-6 rounded-2xl shadow-lg mb-6 border-4 border-red-800 text-center">
+    <h1 class="text-4xl font-extrabold drop-shadow-md">समाज सशक्तिकरण</h1>
+    <p class="text-lg font-semibold mt-1 italic">(सशक्त सोच, समर्पित प्रयास)</p>
+    <h2 class="text-2xl font-bold mt-3">साबरमती मेवाड़ माहेश्वरी समाज, अहमदाबाद</h2>
+  </div>
+
+  <!-- Tabs -->
+  <div class="max-w-5xl mx-auto bg-white p-6 rounded-2xl shadow-md">
+    <div class="flex border-b mb-4">
+      <button class="tab-button px-4 py-2 font-semibold border-b-2 border-red-600 text-red-600" onclick="showTab('donor', event)">Donor Registration</button>
+      <button class="tab-button px-4 py-2 font-semibold text-gray-600 hover:text-red-600" onclick="showTab('adminLogin', event)">Admin Panel</button>
+    </div>
+
+    <!-- Donor Form -->
+    <div id="donor" class="tab-content">
+      <div class="max-w-lg mx-auto bg-gray-50 p-6 rounded-xl shadow-md">
+        <h3 class="text-xl font-bold text-red-700 mb-4 text-center">Donor Registration Form</h3>
+        <form id="donorForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium">Full Name</label>
+            <input type="text" id="name" class="w-full p-2 border rounded" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Blood Group</label>
+            <select id="bloodGroup" class="w-full p-2 border rounded" required>
+              <option value="">Select Blood Group</option>
+              <option>A+</option><option>A-</option>
+              <option>B+</option><option>B-</option>
+              <option>O+</option><option>O-</option>
+              <option>AB+</option><option>AB-</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Phone Number</label>
+            <input type="text" id="phone" class="w-full p-2 border rounded" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Email (Optional)</label>
+            <input type="email" id="email" class="w-full p-2 border rounded" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Consent to share your details?</label>
+            <select id="consent" class="w-full p-2 border rounded" required>
+              <option value="">Select option</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </div>
+          <div class="text-center">
+            <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Admin Login -->
+    <div id="adminLogin" class="tab-content hidden">
+      <div class="max-w-md mx-auto bg-gray-50 p-6 rounded-xl shadow-md">
+        <h3 class="text-xl font-bold text-blue-700 mb-4 text-center">Admin Login</h3>
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium">Username</label>
+            <input type="text" id="username" class="w-full p-2 border rounded" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Password</label>
+            <input type="password" id="password" class="w-full p-2 border rounded" required />
+          </div>
+          <div class="text-center">
+            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Login</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin" class="tab-content hidden">
+      <div class="flex space-x-2 mb-4">
+        <button onclick="loadDonors()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Load Donors</button>
+        <button onclick="exportCSV()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Export CSV</button>
+        <input type="text" id="search" placeholder="Search..." onkeyup="renderDonors()" class="p-2 border rounded flex-1" />
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full border text-sm">
+          <thead class="bg-gray-200">
+            <tr>
+              <th class="p-2 border">Name</th>
+              <th class="p-2 border">Blood Group</th>
+              <th class="p-2 border">Phone</th>
+              <th class="p-2 border">Email</th>
+              <th class="p-2 border">Consent</th>
+            </tr>
+          </thead>
+          <tbody id="donorTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 🔑 JSONBin config
+    const BIN_ID = "68aef9acae596e708fd8d60e";
+    const API_KEY = "$2a$10$f3q74/wLdu/PTRyyIK/qD.KzH0nNADmxyQdokYkkfdpy7bWaJijFO";
+    const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+    let donors = [];
+    let admins = [];
+
+    // Tab switching
+    function showTab(tab, event) {
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
+      document.querySelectorAll(".tab-button").forEach(el => el.classList.remove("border-red-600","text-red-600"));
+      document.getElementById(tab).classList.remove("hidden");
+      if(event) event.target.classList.add("border-red-600","text-red-600");
+    }
+
+    // Load all data (admins + donors)
+    async function loadAll() {
+      try {
+        const res = await fetch(API_URL, { headers: { "X-Master-Key": API_KEY } });
+        const data = await res.json();
+        donors = data.record.donors || [];
+        admins = data.record.admins || [];
+      } catch (err) {
+        console.error("Error loading data", err);
+      }
+    }
+
+    loadAll(); // load on start
+
+    // Save donors back
+    async function saveDonors() {
+      try {
+        await fetch(API_URL, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "X-Master-Key": API_KEY },
+          body: JSON.stringify({ admins, donors })
+        });
+      } catch (err) {
+        alert("❌ Could not save donor.");
+      }
+    }
+
+    // Donor registration
+    document.getElementById("donorForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const donor = {
+        name: document.getElementById("name").value,
+        bloodGroup: document.getElementById("bloodGroup").value,
+        phone: document.getElementById("phone").value,
+        email: document.getElementById("email").value,
+        consent: document.getElementById("consent").value
+      };
+      donors.push(donor);
+      await saveDonors();
+      alert("✅ Donor added successfully!");
+      e.target.reset();
+    });
+
+    // Admin login
+    document.getElementById("loginForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+      const found = admins.find(a => a.username === user && a.password === pass);
+      if (found) {
+        showTab('admin');
+      } else {
+        alert("❌ Invalid credentials");
+      }
+    });
+
+    // Load donors for table
+    function loadDonors() {
+      renderDonors();
+    }
+
+    // Render donors
+    function renderDonors() {
+      const search = document.getElementById("search")?.value.toLowerCase() || "";
+      const tbody = document.getElementById("donorTable");
+      tbody.innerHTML = "";
+      donors
+        .filter(d =>
+          (d.name?.toLowerCase() || "").includes(search) ||
+          (d.phone || "").includes(search) ||
+          (d.bloodGroup?.toLowerCase() || "").includes(search)
+        )
+        .forEach(donor => {
+          const row = `<tr class="border-b hover:bg-gray-100">
+            <td class="p-2 border">${donor.name || ""}</td>
+            <td class="p-2 border">${donor.bloodGroup || ""}</td>
+            <td class="p-2 border">${donor.phone || ""}</td>
+            <td class="p-2 border">${donor.email || ""}</td>
+            <td class="p-2 border">${donor.consent || "No"}</td>
+          </tr>`;
+          tbody.innerHTML += row;
+        });
+    }
+
+    // Export donors as CSV
+    function exportCSV() {
+      if (!donors.length) return alert("No donors to export!");
+      const header = ["Name", "Blood Group", "Phone", "Email", "Consent"];
+      const rows = donors.map(d => [d.name, d.bloodGroup, d.phone, d.email, d.consent || "No"]);
+      let csvContent = "data:text/csv;charset=utf-8," 
+        + [header, ...rows].map(e => e.join(",")).join("\n");
+      const link = document.createElement("a");
+      link.setAttribute("href", encodeURI(csvContent));
+      link.setAttribute("download", "donors.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
